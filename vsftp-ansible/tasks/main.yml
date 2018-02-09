@@ -1,0 +1,26 @@
+---
+- name: Install vsftpd
+  yum: name={{item}} state=installed
+  with_items:
+        - vsftpd
+- name: create a user
+  user: name=ftpuser createhome=yes home=/home/ftpuser password=$1$Swt0jshA$uAwCZBY5dj7UHvd5qPmSS0 shell=/bin/bash state=present
+- name: Empower FTP users
+  file: path=/home/ftpuser mode=777
+
+- name: Check if firewalld is installed
+  stat: path=/usr/lib/systemd/system/firewalld.service
+  register: fw_file
+
+- name: Disable firewalld if it is installed
+  service: name=firewalld.service state=stopped enabled=no
+  when: fw_file.stat.exists != False
+
+- name: Update selinux config to Disabled mode
+  selinux: policy=targeted state=disabled 
+
+- name: Close anonymous access
+  shell: sed -i 's/anonymous_enable=YES/anonymous_enable=NO/g' /etc/vsftpd/vsftpd.conf
+  notify:
+        - restart ftp 
+
