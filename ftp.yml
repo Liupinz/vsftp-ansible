@@ -1,0 +1,6 @@
+- name: Install vsftp
+  gather_facts: no
+  hosts: all
+  roles:
+    - vsftp-ansible
+
